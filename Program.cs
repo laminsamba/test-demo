@@ -12,6 +12,7 @@ return await Pulumi.Deployment.RunAsync(() =>
     const string __resourceGroup = "rg-demo";
     const string __location = "UKSouth";
     const string __vnet = "Vnet2";
+    const string __accountName = "demotestdb001";
 
     // Create an instance of ResourceGroup component
     var resourceGroup = new myResourceGroup("myResourceGroup", __resourceGroup, __location);
@@ -31,6 +32,8 @@ return await Pulumi.Deployment.RunAsync(() =>
 
     //create App service Plan
     var webAppServicePlan = new myAppServicePlan(__location, "webAppServicePlan", __resourceGroup, "webAppServicePlan", "app");
+
+    var cosmosDb = new myAzureCosmosDb(__location, __resourceGroup, __accountName);
 
 });
 
@@ -209,6 +212,46 @@ public class myAppServicePlan
             Name = resourceName,
             ResourceGroupName = resourceGroupName,
             ServerFarmId = appServicePlan.Id
+        });
+    }
+}
+
+public class myAzureCosmosDb
+{
+    private readonly string _location;
+    private readonly string _resourceGroupName;
+    private readonly string _accountName;
+
+    public myAzureCosmosDb(string location, string resourceGroupName, string accountName)
+    {
+        _location = location;
+        _resourceGroupName = resourceGroupName;
+        _accountName = accountName;
+
+        var databaseAccount = new Pulumi.AzureNative.DocumentDB.DatabaseAccount("databaseAccount", new()
+        {
+            AccountName = accountName,
+            CreateMode = Pulumi.AzureNative.DocumentDB.CreateMode.Default,
+            DatabaseAccountOfferType = Pulumi.AzureNative.DocumentDB.DatabaseAccountOfferType.Standard,
+            Location = location,
+            Locations = new[]
+               {
+                    new Pulumi.AzureNative.DocumentDB.Inputs.LocationArgs
+                    {
+                        FailoverPriority = 0,
+                        IsZoneRedundant = false,
+                        LocationName = location,
+                    },
+                },
+            ResourceGroupName = resourceGroupName,
+            VirtualNetworkRules = new[]
+            {
+                new Pulumi.AzureNative.DocumentDB.Inputs.VirtualNetworkRuleArgs
+                {
+                    Id = "string",
+                    IgnoreMissingVNetServiceEndpoint = false,
+                }
+            }
         });
     }
 }
