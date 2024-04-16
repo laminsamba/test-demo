@@ -14,26 +14,16 @@ return await Pulumi.Deployment.RunAsync(() =>
     const string __vnet = "Vnet2";
     const string __accountName = "demotestdb001";
 
-    // Create an instance of ResourceGroup component
-    var resourceGroup = new myResourceGroup("myResourceGroup", __resourceGroup, __location);
-
-    // Create an Azure resource (Storage Account)
-    var storageAccount = new myStorageAccount("sa002qw", __resourceGroup, __location);
-
-    // Create Virtual Network
-    var virtualNetwork = new myVirtualNetwork(__vnet, __location, __resourceGroup, "10.10.100.0/24");
-
-    // Create subnets
-    var subnet1 = new mySubnet("subnet1", "10.10.100.32/27", __resourceGroup, "subnet1", __vnet);
-    var subnet2 = new mySubnet("subnet2", "10.10.100.64/27", __resourceGroup, "subnet2", __vnet);
-
-    // Create NSG
-    var networkSecurityGroupResource = new myNsg("testNsg", __resourceGroup, __location);
-
-    //create App service Plan
-    var webAppServicePlan = new myAppServicePlan(__location, "webAppServicePlan", __resourceGroup, "webAppServicePlan", "app");
-
-    var cosmosDb = new myAzureCosmosDb(__location, __resourceGroup, __accountName);
+    var resourceGroup     = new myResourceGroup("myResourceGroup", __resourceGroup, __location);
+    //var storageAccount    = new myStorageAccount("sa002qw", __resourceGroup, __location);
+    //var virtualNetwork    = new myVirtualNetwork(__vnet, __location, __resourceGroup, "10.10.100.0/24");
+    //var subnet1           = new mySubnet("subnet1", "10.10.100.32/27", __resourceGroup, "subnet1", __vnet);
+    //var subnet2           = new mySubnet("subnet2", "10.10.100.64/27", __resourceGroup, "subnet2", __vnet);
+    //var nsg               = new myNsg("testNsg", __resourceGroup, __location);
+    //var webAppServicePlan = new myAppServicePlan(__location, "webAppServicePlan", __resourceGroup, "webAppServicePlan", "app");
+    //var cosmosDb          = new myAzureCosmosDb(__location, __resourceGroup, __accountName);
+    //var manageIdentity1   = new myManagedIdentity(__location, __resourceGroup, "user1-mi", "userAssignedIdentity1");
+    //var manageIdentity2   = new myManagedIdentity(__location, __resourceGroup, "user2-mi", "userAssignedIdentity2");
 
 });
 
@@ -244,13 +234,42 @@ public class myAzureCosmosDb
                     },
                 },
             ResourceGroupName = resourceGroupName,
-            VirtualNetworkRules = new[]
+            //VirtualNetworkRules = new[]
+            //{
+            //    new Pulumi.AzureNative.DocumentDB.Inputs.VirtualNetworkRuleArgs
+            //    {
+            //        Id = "string",
+            //        IgnoreMissingVNetServiceEndpoint = false,
+            //    }
+            //}
+        });
+    }
+}
+
+public class myManagedIdentity
+{
+    private readonly string _location;
+    private readonly string _resourceGroupName;
+    private readonly string _resourceName;
+    private readonly string _xxx;
+
+
+    public myManagedIdentity(string location, string resourceGroupName, string resourceName, string xxx)
+    {
+        _location = location;
+        _resourceGroupName = resourceGroupName;
+        _resourceName = resourceName;
+        _xxx = xxx;
+
+        var userAssignedIdentity = new Pulumi.AzureNative.ManagedIdentity.UserAssignedIdentity(xxx, new()
+        {
+            Location = location,
+            ResourceGroupName = resourceGroupName,
+            ResourceName = resourceName,
+            Tags =
             {
-                new Pulumi.AzureNative.DocumentDB.Inputs.VirtualNetworkRuleArgs
-                {
-                    Id = "string",
-                    IgnoreMissingVNetServiceEndpoint = false,
-                }
+                { "key1", "value1" },
+                { "key2", "value2" },
             }
         });
     }
