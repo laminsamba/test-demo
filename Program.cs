@@ -7,12 +7,11 @@ using Pulumi.AzureNative.Storage.Inputs;
 using System.Collections.Generic;
 using SkuName = Pulumi.AzureNative.Storage.SkuName;
 
-using Pulumi.AzureNative.CostManagement;
-
 return await Pulumi.Deployment.RunAsync(() =>
 {
     const string __resourceGroup = "rg-demo";
     const string __location = "UKSouth";
+    const string __vnet = "Vnet2";
 
     // Create an instance of ResourceGroup component
     var resourceGroup = new myResourceGroup("myResourceGroup", __resourceGroup, __location);
@@ -21,20 +20,17 @@ return await Pulumi.Deployment.RunAsync(() =>
     var storageAccount = new myStorageAccount("sa002qw", __resourceGroup, __location);
 
     // Create Virtual Network
-    var virtualNetwork = new myVirtualNetwork("Vnet1", __location, __resourceGroup, "10.10.100.0/24");
+    var virtualNetwork = new myVirtualNetwork(__vnet, __location, __resourceGroup, "10.10.100.0/24");
 
     // Create subnets
-    var subnet1 = new mySubnet("subnet1", "10.10.100.32/27", __resourceGroup, "subnet1", "vnet1");
-    var subnet2 = new mySubnet("subnet2", "10.10.100.64/27", __resourceGroup, "subnet2", "vnet1");
+    var subnet1 = new mySubnet("subnet1", "10.10.100.32/27", __resourceGroup, "subnet1", __vnet);
+    var subnet2 = new mySubnet("subnet2", "10.10.100.64/27", __resourceGroup, "subnet2", __vnet);
 
     // Create NSG
     var networkSecurityGroupResource = new myNsg("testNsg", __resourceGroup, __location);
 
     //create App service Plan
     var webAppServicePlan = new myAppServicePlan(__location, "webAppServicePlan", __resourceGroup, "webAppServicePlan", "app");
-
-    var functionApp = new myAppServicePlan(__location, "functionApp", __resourceGroup, "functionApp", "functionApp");
-
 
 });
 
@@ -215,6 +211,5 @@ public class myAppServicePlan
             ServerFarmId = appServicePlan.Id
         });
     }
-
-
 }
+
