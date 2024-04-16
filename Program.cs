@@ -11,29 +11,31 @@ using Pulumi.AzureNative.CostManagement;
 
 return await Pulumi.Deployment.RunAsync(() =>
 {
+    const string __resourceGroup = "test";
+    const string __location = "UKSouth";
 
     // Create an instance of ResourceGroup component
-    var resourceGroup = new myResourceGroup("myResourceGroup", "test", "UkSouth");
+    var resourceGroup = new myResourceGroup("myResourceGroup", __resourceGroup, __location);
 
     // Create an Azure resource (Storage Account)
     var storageAccount = new myStorageAccount("sa002qw");
 
     // Create Virtual Network
-    var virtualNetwork = new myVirtualNetwork("Vnet1", "UkSouth", "test", "10.10.100.0/24");
+    var virtualNetwork = new myVirtualNetwork("Vnet1", __location, __resourceGroup, "10.10.100.0/24");
 
     // Create subnets
-    var subnet1 = new mySubnet("subnet1", "10.10.100.32/27", "test", "subnet1", "vnet1");
-    var subnet2 = new mySubnet("subnet2", "10.10.100.64/27", "test", "subnet2", "vnet1");
+    var subnet1 = new mySubnet("subnet1", "10.10.100.32/27", __resourceGroup, "subnet1", "vnet1");
+    var subnet2 = new mySubnet("subnet2", "10.10.100.64/27", __resourceGroup, "subnet2", "vnet1");
 
     // Create NSG
-    var networkSecurityGroupResource = new myNsg("testNsg", "test", "UkSouth");
+    var networkSecurityGroupResource = new myNsg("testNsg", __resourceGroup, __location);
 
     //create App service Plan
-    var functionAppServicePlan = new myAppServicePlan("UKSouth", "functionAppServicePlan", "test", "functionAppServicePlan");
-    var webAppServicePlan      = new myAppServicePlan("UKSouth", "webAppServicePlan", "test", "webAppServicePlan");
+    var webAppServicePlan = new myAppServicePlan(__location, "webAppServicePlan", __resourceGroup, "webAppServicePlan", "app");
 
-    //create web app
-   // var webApp = new myWebApp("UKSouth", "test", "webApp", "webApp");
+    var functionApp = new myAppServicePlan(__location, "functionApp", __resourceGroup, "functionApp", "FunctionApp");
+
+
 });
 
 
@@ -179,17 +181,19 @@ public class myAppServicePlan
     private readonly string _appServicePlanName;
     private readonly string _resourceGroupName;
     private readonly string _resourceName;
+    private readonly string _kind;
 
-    public myAppServicePlan(string location, string appServicePlanName, string resourceGroupName, string resourceName)
+    public myAppServicePlan(string location, string appServicePlanName, string resourceGroupName, string resourceName, string kind)
     {
         _location = location;
         _appServicePlanName = appServicePlanName;
         _resourceGroupName = resourceGroupName;
         _resourceName = resourceName;
+        _kind = kind;
 
         var appServicePlan = new AppServicePlan(resourceName, new()
         {
-            Kind = "app",
+            Kind = kind,
             Location = location,
             Name = appServicePlanName,
             ResourceGroupName = resourceGroupName,
@@ -203,6 +207,16 @@ public class myAppServicePlan
             },
         });
 
+        var webApp = new WebApp(kind, new()
+        {
+            Location = location,
+            Name = resourceName,
+            ResourceGroupName = resourceGroupName,
+            ServerFarmId = appServicePlan.Id
+        });
+
+
+
     }
 }
 
@@ -212,22 +226,31 @@ public class myAppServicePlan
 //    private readonly string _appServicePlanName;
 //    private readonly string _resourceGroupName;
 //    private readonly string _resourceName;
-//    public myWebApp(string location, string resourceGroupName, string appServicePlanName,  string resourceName)
+//    public myWebApp(string location, string resourceGroupName, string appServicePlanName, string resourceName)
 //    {
-//        _location=location; 
+//        _location = location;
 //        _resourceGroupName = resourceGroupName;
-//        _appServicePlanName=appServicePlanName;
+//        _appServicePlanName = appServicePlanName;
 //        _resourceName = resourceName;
 
 //        var appServicePlan = AppServicePlan.Get(location, _appServicePlanName);
 
-//        var webApp = new WebApp(appServicePlanName, new()
+//        //var webApp = new WebApp(appServicePlanName, new()
+//        //{
+//        //    Kind = "app",
+//        //    Location = location,
+//        //    Name = resourceName,
+//        //    ResourceGroupName = resourceGroupName,
+//        //    ServerFarmId = appServicePlan.Id
+//        //});
+
+//        var webApp = new WebApp("webApp", new()
 //        {
 //            Kind = "app",
-//            Location = location,
+//            Location = location, //  "East US",
 //            Name = resourceName,
 //            ResourceGroupName = resourceGroupName,
-//            ServerFarmId = appServicePlan.Id
+//            ServerFarmId = appServicePlan.Id //"/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/testrg123/providers/Microsoft.Web/serverfarms/DefaultAsp",
 //        });
 //    }
 //}
@@ -246,30 +269,6 @@ public class myAppServicePlan
 //        _appServicePlanName = appServicePlanName;
 //        _resourceGroupName = resourceGroupName;
 //        _resourceName = resourceName;
-
-//        var webAppFunctionResource = new WebAppFunction(resourceName, new()
-//            {
-//                Name = "string",
-//                ResourceGroupName = resourceGroupName,
-//                Kind = "string",
-//                Language = "string",
-//                FunctionName = "string",
-//                Href = "string",
-//                InvokeUrlTemplate = "string",
-//                IsDisabled = false,
-//                Config = "any",
-//                FunctionAppId = "string",
-//                Files =
-//            {
-//                { "string", "string" },
-//            },
-//                    ConfigHref = "string",
-//                    ScriptHref = "string",
-//                    ScriptRootPathHref = "string",
-//                    SecretsFileHref = "string",
-//                    TestData = "string",
-//                    TestDataHref = "string",
-//                });
 
 //    }
 //}
