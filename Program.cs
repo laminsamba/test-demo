@@ -11,14 +11,14 @@ using Pulumi.AzureNative.CostManagement;
 
 return await Pulumi.Deployment.RunAsync(() =>
 {
-    const string __resourceGroup = "test";
+    const string __resourceGroup = "rg-demo";
     const string __location = "UKSouth";
 
     // Create an instance of ResourceGroup component
     var resourceGroup = new myResourceGroup("myResourceGroup", __resourceGroup, __location);
 
     // Create an Azure resource (Storage Account)
-    var storageAccount = new myStorageAccount("sa002qw");
+    var storageAccount = new myStorageAccount("sa002qw", __resourceGroup, __location);
 
     // Create Virtual Network
     var virtualNetwork = new myVirtualNetwork("Vnet1", __location, __resourceGroup, "10.10.100.0/24");
@@ -33,7 +33,7 @@ return await Pulumi.Deployment.RunAsync(() =>
     //create App service Plan
     var webAppServicePlan = new myAppServicePlan(__location, "webAppServicePlan", __resourceGroup, "webAppServicePlan", "app");
 
-    var functionApp = new myAppServicePlan(__location, "functionApp", __resourceGroup, "functionApp", "FunctionApp");
+    var functionApp = new myAppServicePlan(__location, "functionApp", __resourceGroup, "functionApp", "functionApp");
 
 
 });
@@ -64,24 +64,26 @@ public class myResourceGroup
 public class myStorageAccount
 {
     private readonly string _name;
-   // private readonly string _resourceGroup;
-   // private readonly string _location;
+    private readonly string _resourceGroup;
+    private readonly string _location;
 
-    public myStorageAccount(string name)
+    public myStorageAccount(string name, string resourceGroup, string location)
     {
         _name = name;
+        _resourceGroup = resourceGroup;
+        _location = location;
 
-        var resourceGroup = new ResourceGroup("test", new()
+        var resourceGroupResource = new ResourceGroup(resourceGroup, new()
         {  
-            ResourceGroupName = "test",
-            Location = "UKSouth",
+            ResourceGroupName = resourceGroup,
+            Location = location,
         });
 
         var storageAccountArgs = new StorageAccountArgs
         {
             AccountName = name,
-            ResourceGroupName = resourceGroup.Name,
-            Location = resourceGroup.Location,
+            ResourceGroupName = resourceGroupResource.Name,
+            Location = resourceGroupResource.Location,
             Kind = Kind.StorageV2,
             Sku = new SkuArgs { Name = SkuName.Standard_LRS }
         };
@@ -118,8 +120,6 @@ public class myVirtualNetwork
             ResourceGroupName = resourceGroup,
             VirtualNetworkName = virtualNetworkName,
         });
-
-        // var virtualNetwork = new myVirtualNetwork(virtualNetworkName, location, resourceGroup);
     }
 }
 
@@ -214,61 +214,7 @@ public class myAppServicePlan
             ResourceGroupName = resourceGroupName,
             ServerFarmId = appServicePlan.Id
         });
-
-
-
     }
+
+
 }
-
-//public class myWebApp
-//{
-//    private readonly string _location;
-//    private readonly string _appServicePlanName;
-//    private readonly string _resourceGroupName;
-//    private readonly string _resourceName;
-//    public myWebApp(string location, string resourceGroupName, string appServicePlanName, string resourceName)
-//    {
-//        _location = location;
-//        _resourceGroupName = resourceGroupName;
-//        _appServicePlanName = appServicePlanName;
-//        _resourceName = resourceName;
-
-//        var appServicePlan = AppServicePlan.Get(location, _appServicePlanName);
-
-//        //var webApp = new WebApp(appServicePlanName, new()
-//        //{
-//        //    Kind = "app",
-//        //    Location = location,
-//        //    Name = resourceName,
-//        //    ResourceGroupName = resourceGroupName,
-//        //    ServerFarmId = appServicePlan.Id
-//        //});
-
-//        var webApp = new WebApp("webApp", new()
-//        {
-//            Kind = "app",
-//            Location = location, //  "East US",
-//            Name = resourceName,
-//            ResourceGroupName = resourceGroupName,
-//            ServerFarmId = appServicePlan.Id //"/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/testrg123/providers/Microsoft.Web/serverfarms/DefaultAsp",
-//        });
-//    }
-//}
-
-
-//public class myFunctionApp
-//{
-//    private readonly string _location;
-//    private readonly string _appServicePlanName;
-//    private readonly string _resourceGroupName;
-//    private readonly string _resourceName;
-
-//    public myFunctionApp(string location, string appServicePlanName, string resourceGroupName, string resourceName)
-//    {
-//        _location = location;
-//        _appServicePlanName = appServicePlanName;
-//        _resourceGroupName = resourceGroupName;
-//        _resourceName = resourceName;
-
-//    }
-//}
